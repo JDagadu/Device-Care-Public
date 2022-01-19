@@ -1,0 +1,66 @@
+/* .device-care-logo{
+    background: url('../Images/');
+} */
+
+body{
+    min-height: 100vh !important;
+}
+.main-body{
+    background: transparent url('../Images/BG4.PNG');
+    background-position: center  ;
+    background-size:     cover;                      /* <------ */
+    background-repeat:   no-repeat;
+    background-position: center center;     
+    background-color: rgba(249, 250, 251, var(--tw-bg-opacity));
+}
+
+.bg-blue{
+    background: transparent url('../Images/BG5.PNG');
+    background-position: center  ;
+    background-size:     cover;                      /* <------ */
+    background-repeat:   no-repeat;
+    background-position: center center;     
+    min-height: 100vh;
+    background-color: rgba(249, 250, 251, var(--tw-bg-opacity));
+} 
+
+.device-care-logo{
+    width: 150px;
+    height: auto;
+}
+
+#signinbutton{
+background-color: #243F7C;
+}
+#form-next-button{
+    background: #243F7C;
+}
+.step-ind-active{
+    border-color: #0052cc  ;
+    color:#0052cc;
+}
+.resend-code-link{
+    color: #0052cc;
+}
+#form-next-button:hover{
+background-color: #0052cc;
+}
+
+.pin:focus{
+    border-color: #0052cc !important;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+/* .hiddenn{
+    display:;
+} */
