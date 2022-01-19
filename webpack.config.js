@@ -28,7 +28,7 @@ entry:{
     // Source: https://git.io/vppgU
     globalObject: "typeof self !== 'undefined' ? self : this",
     clean:true,
-    publicPath: '/',
+    
   },
   module: {
     rules: [
