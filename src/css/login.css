@@ -32,7 +32,7 @@ body{
 #signinbutton{
 background-color: #243F7C;
 }
-#form-next-button{
+#form-next-button,#ok-btn,#success-btn-ok{
     background: #243F7C;
 }
 .step-ind-active{
@@ -42,7 +42,7 @@ background-color: #243F7C;
 .resend-code-link{
     color: #0052cc;
 }
-#form-next-button:hover{
+#form-next-button:hover,#ok-btn:hover,#success-btn-ok:hover{
 background-color: #0052cc;
 }
 

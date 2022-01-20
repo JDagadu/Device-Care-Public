@@ -8,6 +8,7 @@ import { clearContent } from './utilities';
 import buildLoadingModal from './loadingmodaldialog';
 import { signIn } from './firebasesrc';
 import { getIndustriesTypes } from './datamanager';
+import buildLandingDashboard from './landingDashboard';
 
 let changes =0;
  export default  async function buildLoginPage() 
@@ -38,6 +39,7 @@ let changes =0;
                                             let signinreturn = await signIn(emailvalue,passwordvalue);
                                             if(signinreturn == true){
                                                 stopButtonLoading('signinbutton','Sign in');
+                                                document.querySelector('.mbody').append(buildLandingDashboard());
                                                 // document.querySelector('.loading-ui').classList.add('hidden')
                                             }else{
                                                 let domObj = document.querySelector('.errormessage')
