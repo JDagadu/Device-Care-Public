@@ -6,9 +6,12 @@ import loginflankimg from './Images/loginflankimg.jpg'
 import feather from 'feather-icons'
 import { clearContent } from './utilities';
 import buildLoadingModal from './loadingmodaldialog';
-import { signIn } from './firebasesrc';
+import { db, signIn } from './firebasesrc';
 import { getIndustriesTypes } from './datamanager';
 import buildLandingDashboard from './landingDashboard';
+import { doc, getDoc } from "firebase/firestore";
+import buildOnboardingPage, { AssitiveText, fillInPin, pinVerificationFormFeedbackText, stepFormReplacement } from './onboardingpage';
+// import { copy } from 'request/lib/helpers';
 
 let changes =0;
  export default  async function buildLoginPage() 
@@ -37,14 +40,128 @@ let changes =0;
                                         // document.querySelector('.main-content').appendChild(buildLoadingModal());
                                             initializeButtonLoading('signinbutton');
                                             let signinreturn = await signIn(emailvalue,passwordvalue);
-                                            if(signinreturn == true){
+                                            if(signinreturn.uid){
+                                                const docRef = doc(db,"corporateUser",signinreturn.uid)
+                                                const docSnap = await getDoc(docRef);
+                                                if(docSnap.exists()){
+                                                    // console.log(docSnap.data())
+                                                    const corporateDoc = await getDoc(doc(db,"corporate",docSnap.data().corporateId))
+                                                    if(corporateDoc.exists()){
+                                                        if(corporateDoc.data().isVerified){
+                                                            document.querySelector('.mbody').append(await buildLandingDashboard(signinreturn));
+                                                        }else{
+                                                            
+                                                            var myHeaders = new Headers();
+                                            
+                                            myHeaders.append("Content-Type", "application/json");
+                                            let finalcomp  = JSON.parse(localStorage.getItem('finalCompany'))
+                                            var raw = {'email':finalcomp.email,'type':'C'};
+                                            console.log(JSON.stringify(raw))
+                                            var requestOptions = {
+                                            method: 'POST',
+                                            headers: myHeaders,
+                                            body: JSON.stringify(raw),
+                                            redirect: 'follow'
+                                            };
+
+                                            fetch("https://us-central1-devicecare-652a9.cloudfunctions.net/resendOTP", requestOptions)
+                                            .then(response => response.text())
+                                            .then(async result =>{
+                                                console.log(result);
+                                                let resultObj= JSON.parse(result)
+                                                if(resultObj.message == 'Success'){
+                                                    let user = docSnap.data()
+                                                            let corp = corporateDoc.data()
+                                                            let compProf = {
+                                                                'Email':user.email,
+                                                                'First name':user.firstname,
+                                                                'Other names':user.othernames,
+                                                                'Phone': user.phoneNumber,
+                                                                'Job title':user.jobTitle,
+                                                                'Ghana card number': user.idNumber,
+                                                                'Gender':user.gender,
+                                                                'Company name':corp.name,
+                                                                'Company address':corp.address,
+                                                                'Business type': corp.businessType,
+                                                                'Corporate email':corp.email,
+                                                                'GP Address': corp.GPAddress,
+                                                                'Corporate phone':corp.phoneNumber,
+                                                                'Comments':corp.comments}
+                                                            localStorage.setItem('companyProfile',JSON.stringify(compProf))
+                                                            
+                                                            localStorage.setItem('finalCompany',JSON.stringify(
+                                                                {
+                                                                    name:compProf['Company name'],
+                                                                    address:compProf['Company address'],
+                                                                    businessType:compProf['Business type'],
+                                                                    email:compProf['Corporate email'],
+                                                                    GPAddress:compProf['GP Address'],
+                                                                    phoneNumber:compProf['Corporate phone'],
+                                                                    comments:compProf['Comments'],
+                                                                    users: [{
+                                                                        firstname: compProf['First name'],
+                                                                        othernames: compProf['Other names'],
+                                                                        email: compProf['Email'],
+                                                                        jobTitle: compProf['Job title'],
+                                                                        phoneNumber:compProf['Phone'],
+                                                                        idType: 'GhanaCard',
+                                                                        idNumber: compProf['Ghana card number'],
+                                                                        password:compProf['password'],
+                                                                        gender:compProf['Gender']
+                                                                    }]
+                                                                }
+                                                            ))
+
+
+                                                    document.querySelector('.mbody').append( await buildOnboardingPage({isVerified:false}));
+                                                    let buttonhouse = document.querySelector('.button-house')
+                                                    buttonhouse.insertBefore(pinVerificationFormFeedbackText(),buttonhouse.firstChild);
+                                                    document.querySelector('.step-house').innerHTML = ''
+                                                document.querySelector('.step-house').append(...stepFormReplacement(4));
+                                                AssitiveText('Please verify your account');
+                                                fillInPin();
+                                                    
+                                                    // AssitiveText('Please verify your account');
+                                                    // document.querySelector('#caution-modal').classList.add('hidden');
+                                                    // getCorporateFieldData();
+                                                    // replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],pinVerificationForm(),'submit');
+                                                    // document.querySelector('.step-house').innerHTML = ''
+                                                    // document.querySelector('.step-house').append(...stepFormReplacement());
+                                                    // fillInPin();
+                                                }
+                                            }
+                                                )
+                                            .catch(error => {
+                                                // document.querySelector('#loadingmodal').classList.add('hidden');
+                                                console.log('error', error);
                                                 stopButtonLoading('signinbutton','Sign in');
-                                                document.querySelector('.mbody').append(buildLandingDashboard());
+
+                                                
+                                            })
+
+                                                           
+                                                        }
+                                                    }else{
+                                                        
+                                                        console.log('Company Document does not exist')
+                                                        stopButtonLoading('signinbutton','Sign in');
+
+                                                    // stopButtonLoading('signinbutton','Sign in');
+
+                                                    }
+                                                    
+                                                    // document.querySelector('.mbody').append(buildLandingDashboard(signinreturn));
+                                                }else{
+                                                    console.log('User Data does not exist');
+                                                    stopButtonLoading('signinbutton','Sign in');
+
+                                                }
+                                                
                                                 // document.querySelector('.loading-ui').classList.add('hidden')
                                             }else{
                                                 let domObj = document.querySelector('.errormessage')
                                                 clearContent(domObj);
-                                                domObj.appendChild(document.createTextNode(await signinreturn));
+                                                domObj.appendChild(document.createTextNode( signinreturn));
                                                 stopButtonLoading('signinbutton','Sign in');
                                             }
                                     }},
@@ -71,18 +188,27 @@ let changes =0;
                                                     if(changes == 1 ) addOnClickListenerPassToggle(event.target);
                                                     if(event.target.value.length >0 ){
                                                         // console.log('here')
-                                                        document.querySelector('.labeltoggle').classList.remove('hidden');
-                                                        let passvisibility =  document.querySelector('.toggle-visible-pass');
-                                                        passvisibility.classList.remove('hidden');
+                                                        // document.querySelector('.labeltoggle').classList.remove('hidden');
+                                                        // let passvisibility =  document.querySelector('.toggle-visible-pass');
+                                                        // let passnonvisible  = document.querySelector('.toggle-novisible-pass');
+                                                        // passvisibility.classList.remove('hidden');
+                                                        // console.log(passvisibility.classList.contains('hidden'))
+                                                        // if(Array.from(passvisibility.classList).indexOf('hidden')!==-1){
+
+                                                        //     passnonvisible.classList.remove('hidden')
+                                                        // }else{
+                                                        //     passnonvisible.classList.add('hidden');
+                                                        // }
+                                                        
                                                         
 
     
                                                     }else{
                                                         
-                                                        document.querySelectorAll('.toggle-pass-vis').forEach((ele)=>{
-                                                            ele.classList.add('hidden');
-                                                        })
-                                                        document.querySelector('.labeltoggle').classList.add('hidden');
+                                                        // document.querySelectorAll('.toggle-pass-vis').forEach((ele)=>{
+                                                        //     ele.classList.add('hidden');
+                                                        // })
+                                                        // document.querySelector('.labeltoggle').classList.add('hidden');
                                                     }
                                                     
                                             },id:'passwordfield',required:true,type:'password',placeholder:'',className:' w-full px-4 py-2 text-sm border rounded-md focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-600'}),
@@ -108,8 +234,8 @@ let changes =0;
                                                             target.type ='password'
                                                         }
                                                         target.focus();
-                                                },for:'toggle' ,className:'absolute labeltoggle hidden pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
-                                                    feather.icons['eye'].toSvg({class:'toggle-visible-pass toggle-pass-vis hidden text-xs px-1'}),
+                                                },for:'toggle' ,className:'absolute labeltoggle pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
+                                                    feather.icons['eye'].toSvg({class:'toggle-visible-pass toggle-pass-vis text-xs px-1'}),
                                                     'image/svg+xml',
                                                   ).querySelector('svg'),
                                                   new DOMParser().parseFromString(
@@ -150,11 +276,11 @@ function initializeButtonLoading(classs){
     let domObj = document.querySelector(`.${classs}`);
     clearContent(domObj) 
     domObj.appendChild(new DOMParser().parseFromString(
-        feather.icons['loader'].toSvg(),
+        feather.icons['loader'].toSvg({class:'animate-spin'}),
         'image/svg+xml',
       ).querySelector('svg'))
     
-    document.querySelector('svg').classList.add('animate-spin');
+    // document.querySelector('svg').classList.add('');
     document.querySelector(`.${classs}`).disabled = true;
 }
 
@@ -162,6 +288,8 @@ function addOnClickListenerPassToggle(target){
     
     document.querySelectorAll('.toggle-pass-vis').forEach((ele)=>{
         ele.addEventListener('click',(event)=>{
+
+            // event.target.classList.
             
         })
     })

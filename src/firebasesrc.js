@@ -1,7 +1,7 @@
 import {initializeApp} from 'firebase/app'
 import { getFunctions } from 'firebase/functions';
 
-import { getAuth, signInWithEmailAndPassword,onAuthStateChanged, getRedirectResult} from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword,onAuthStateChanged, getRedirectResult, signOut} from "firebase/auth";
 
 // import { getAuth,  } from 'firebase/auth';
 import {getFirestore,doc,getDoc,onSnapshot} from 'firebase/firestore'
@@ -30,8 +30,10 @@ return signInWithEmailAndPassword(auth, email, password)
     // Signed in 
     console.log('signed in')
     const user = userCredential.user;
+    console.log(user.uid);
 
-    return true;
+
+    return user;
     // ...
   })
   .catch((error) => {
@@ -47,5 +49,9 @@ return signInWithEmailAndPassword(auth, email, password)
 
 }
 
-export {signIn,getDoc,getFirestore,doc,onSnapshot,functions,db}
+async function signOutUser(){
+  return await signOut(auth);
+}
+
+export {signIn,getDoc,getFirestore,doc,onSnapshot,signOutUser,functions,db}
 

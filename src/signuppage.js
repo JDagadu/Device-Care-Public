@@ -36,7 +36,8 @@ export default function buildSignUpPage()
 
                                             clearContent(document.querySelector('.mbody'));
                                             document.querySelector('#loadingmodal').classList.remove('hidden');
-                                            let onboardingpage = await buildOnboardingPage();
+                                            let onboardingpage = await buildOnboardingPage({isVerified:false});
+                                            console.log(onboardingpage)
                                             document.querySelector('.mbody').appendChild(onboardingpage);
 
                                         }

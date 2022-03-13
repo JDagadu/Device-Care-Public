@@ -29,6 +29,19 @@ body{
     height: auto;
 }
 
+.active-nav-menu{
+    border-left: 3px solid white;
+    background-color: rgba(55, 65, 81, var(--tw-bg-opacity));
+}
+
+
+.device-care-logo1{
+    width: 200px;
+    height: auto;
+    padding: 0;
+
+}
+
 #signinbutton{
 background-color: #243F7C;
 }

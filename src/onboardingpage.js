@@ -14,12 +14,17 @@ import buildLandingDashboard from "./landingDashboard";
 let currentstep = 1;
 
 
-export default async function buildOnboardingPage(){
+export default async function buildOnboardingPage(veriedobj){
     clearContent(document.querySelector('.mbody'))
 
     console.log(localStorage.getItem('finalCompany'))
-
-
+    console.log(veriedobj.isVerified)
+    if(veriedobj.isVerified==true){
+        
+        currentstep = 4;
+    }else{
+        currentstep = 1;
+    }
    
 
     let dom =  elt('div',{className:'on-b m-0 w-full min-h-screen bg-blue bg-gray-50'},
@@ -69,7 +74,7 @@ export default async function buildOnboardingPage(){
                                         AssitiveText('Kindly tell us about the company you represent');
                                         replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],await corporateDataForm(),'submit');
                                         document.querySelector('.step-house').innerHTML = ''
-                                        document.querySelector('.step-house').append(...stepFormReplacement());
+                                        document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
 
                                         }
                                         
@@ -83,7 +88,7 @@ export default async function buildOnboardingPage(){
                                             // console.log(await corporateSignUp(JSON.parse(localStorage.getItem('finalCompany'))));
                                             replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],confirmationDetailsForm(),'submit');
                                             document.querySelector('.step-house').innerHTML = ''
-                                            document.querySelector('.step-house').append(...stepFormReplacement());
+                                            document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
                                             // fillInPin();
                                             
                                                                                     }
@@ -127,7 +132,7 @@ export default async function buildOnboardingPage(){
                                                         // getCorporateFieldData();
                                                         replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],pinVerificationForm(),'submit');
                                                         document.querySelector('.step-house').innerHTML = ''
-                                                        document.querySelector('.step-house').append(...stepFormReplacement());
+                                                        document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
                                                         fillInPin();
                                                     })
                                                     
@@ -155,7 +160,7 @@ export default async function buildOnboardingPage(){
                                     
                                     
                                 }},
-                                await authorizedDataForm(),
+                                 await decideStepPage(veriedobj),
                                         
                                         
                                         
@@ -169,18 +174,18 @@ export default async function buildOnboardingPage(){
                                                 AssitiveText('Kindly confirm details match information provided');
                                                 replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],await confirmationDetailsForm(),'back');
                                                 document.querySelector('.step-house').innerHTML = ''
-                                                document.querySelector('.step-house').append(...stepFormReplacement());
+                                                document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
                                             }
                                             else if( currentstepcheck== 2){
                                                 AssitiveText('Kindly tell us about the company you represent');
                                                 replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],await corporateDataForm(),'back');
                                                 document.querySelector('.step-house').innerHTML = ''
-                                                document.querySelector('.step-house').append(...stepFormReplacement());
+                                                document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
                                             }else if(currentstepcheck == 1){
                                                 AssitiveText('Please fill in with authorized representative data');
                                                 replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],await authorizedDataForm(),'back');
                                                 document.querySelector('.step-house').innerHTML = ''
-                                                document.querySelector('.step-house').append(...stepFormReplacement());
+                                                document.querySelector('.step-house').append(...stepFormReplacement(currentstep));
                                             }
                                             console.log('back button cliked',currentstep,currentstepcheck)
                                         }},'back'),
@@ -204,15 +209,15 @@ async function corporateDataForm(){
     return elt('div',{className:'field-container transition-all ease-out duration-500 corporate-data-form grid grid-cols-2 gap-4'},
                                         elt('div',{className:'flex flex-col col-span-2  mb-4'},
                                             elt('label',{ className:'inline-flex mb-2 text-sm text-gray-800',for:'name'},'Company Name'),
-                                            elt('input',{required:true,value:fillboxes.name,type:'text',id:'companyname',name: 'companyname' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            elt('input',{required:true,value:(fillboxes)?fillboxes.name:'',type:'text',id:'companyname',name: 'companyname' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col col-span-2 mb-4'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'phone'},'Company Physical Address'),
-                                            elt('input',{required:true,value:fillboxes.address,type:'text',id:'companyaddress',name: 'companyaddress' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            elt('input',{required:true,value:(fillboxes)?fillboxes.address:'',type:'text',id:'companyaddress',name: 'companyaddress' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Type of Business'),
                                             elt('div',{className:'flex flex-row items-center justify-between'},elt('select',{onchange(){
                                                 document.querySelector('.caution-select').classList.add('hidden');
-                                            },id:'businesstype',value:fillboxes.businessType,name:'businesstype',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'},...(await addBusinessTypeOptions())),
+                                            },id:'businesstype',name:'businesstype',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'},...(await addBusinessTypeOptions())),
                                             new DOMParser().parseFromString(
                                                 feather.icons['alert-circle'].toSvg({class:'hidden caution-select text-red-500 text-xs px-1'}),
                                                 'image/svg+xml',
@@ -220,16 +225,16 @@ async function corporateDataForm(){
                                             ),
                                         elt('div',{className:'flex flex-col mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Email'),
-                                            elt('input',{required:true,value:fillboxes.email,id:'corporateemail',type:'email',name:'corporateemail',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            elt('input',{required:true,value:(fillboxes)?fillboxes.email:'',id:'corporateemail',type:'email',name:'corporateemail',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'GP Address'),
-                                            elt('input',{required:true,value:fillboxes.GPAddress,type:'text',id:'gpaddress',name:'gpaddress',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            elt('input',{required:true,value:(fillboxes)?fillboxes.GPAddress:'',type:'text',id:'gpaddress',name:'gpaddress',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Phone Number'),
-                                            elt('input',{required:true,value:fillboxes.phoneNumber,id:'corporatephone',type:'number',name:'corporatephone',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            elt('input',{required:true,value:(fillboxes)?fillboxes.phoneNumber:'',id:'corporatephone',type:'number',name:'corporatephone',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col  col-span-2 mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Comments'),
-                                            elt('textarea',{id:'comments',value:fillboxes.comments,name:'comments',rows:'4',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'}))
+                                            elt('textarea',{id:'comments',value:(fillboxes)?fillboxes.comments:'',name:'comments',rows:'4',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'}))
                                         )
 }
 function confirmationDetailsForm(){
@@ -285,22 +290,22 @@ async function authorizedDataForm(){
     return elt('div',{className:'field-container transition-all ease-out duration-500 authorized-data-form grid grid-cols-2 gap-4'},
     elt('div',{className:'flex flex-col mb-4'},
         elt('label',{ className:'inline-flex mb-2 text-sm text-gray-800',for:'name'},'First Name'),
-        elt('input',{id:'firstname',value:fillboxes.users[0].firstname,required: true,name: 'firstname' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+        elt('input',{id:'firstname',value:(fillboxes)?fillboxes.users[0].firstname:'',required: true,name: 'firstname' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     elt('div',{className:'flex flex-col mb-4'},
         elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'phone'},'Other Names'),
-        elt('input',{id:'othernames',value:fillboxes.users[0].othernames,required: true,name: 'othernames' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+        elt('input',{id:'othernames',value:(fillboxes)?fillboxes.users[0].othernames:'',required: true,name: 'othernames' ,className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     // elt('div',{className:'flex flex-col mb-2'},
     //     elt('label',{id:'email',className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Email'),
     //     elt('input',{required: true,name:'email',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     elt('div',{className:'flex flex-col mb-2'},
         elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Phone Number'),
-        elt('input',{id:'phone',value:fillboxes.users[0].phoneNumber,required: true,type:'number',name:'phone',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+        elt('input',{id:'phone',value:(fillboxes)?fillboxes.users[0].phoneNumber:'',required: true,type:'number',name:'phone',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     elt('div',{className:'flex flex-col mb-2'},
         elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'jobtitle'},'Job Title'),
-        elt('input',{id:'jobtitle',required: true,value:fillboxes.users[0].jobTitle,name:'jobtitle',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+        elt('input',{id:'jobtitle',required: true,value:(fillboxes)?fillboxes.users[0].jobTitle:'',name:'jobtitle',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     elt('div',{className:'flex flex-col mb-2'},
         elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'idcardnumber'},'Ghana Card Number'),
-        elt('input',{id:'idcardnumber',required: true,value:fillboxes.users[0].idNumber,name:'idcardnumber',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+        elt('input',{id:'idcardnumber',required: true,value:(fillboxes)?fillboxes.users[0].idNumber:'',name:'idcardnumber',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
     elt('div',{className:'flex flex-col mb-2'},
         elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Gender'),
         elt('div',{className:'flex flex-row items-center justify-between'},
@@ -376,6 +381,7 @@ function getCorporateFieldData(){
 
     let userProfile = JSON.parse(localStorage.getItem('companyProfile'));
     userProfile = Object.assign(userProfile,{
+        
         'Company name':companyname,
         'Company address':companyaddress,
         'Business type': businesstype,
@@ -418,8 +424,8 @@ function getCorporateFieldData(){
     localStorage.setItem('finalCompany',JSON.stringify(finalObject));
 }
 
-function pinVerificationForm(){
-    replaceBackButtonWithPinFeedback();
+function pinVerificationForm(ind){
+    replaceBackButtonWithPinFeedback(ind);
     let companyProf = JSON.parse(localStorage.getItem('companyProfile'));
     
     return elt('div',{className:'field-container pin-verification-form'},
@@ -461,7 +467,7 @@ function addEventListener(){
          ele.addEventListener('keyup',(event)=>{
              if(/[0-9]/.test(event.code) && (((num+1)+1)<= 5)){
                 document.querySelector(`#pin${(num+1)+1}`).focus();
-             }else {
+             }else if(/[0-9]/.test(event.code) && (((num+1)+1)> 5)) {
                 buildLoadingModal();
                 let OTP = Array.from(document.querySelectorAll('.pin')).map((ele,num)=>{
                     return ele.value
@@ -482,18 +488,25 @@ function addEventListener(){
 
                                             fetch("https://us-central1-devicecare-652a9.cloudfunctions.net/OTPValidation", requestOptions)
                                             .then(response => response.text())
-                                            .then(result =>{
+                                            .then(async result =>{
                                                 console.log(result);
                                                 let resultObj= JSON.parse(result)
+
                                                 if(resultObj.message == 'Success'){
                                                     let fC =  JSON.parse(localStorage.getItem('companyProfile'));
                                                     document.querySelector('#loadingmodal').classList.add('hidden');
-                                                    let res = signIn(fC['Email'],fC['password'])
-                                                    if(res){
-                                                        document.querySelector('.mbody').append(buildLandingDashboard());
+                                                    console.log(fC['Email'],fC['password']);
+                                                    let res = await signIn(fC['Email'],fC['password'])
+                                                    console.log(res.uid);
+                                                    if(res.uid){
+                                                    localStorage.clear('companyProfile');
+                                                    localStorage.clear('finalCompany');
+                                                     document.querySelector('.mbody').append(await buildLandingDashboard());
                                                     }else{
                                                         console.log(res);
+                                                        document.querySelector('#loadingmodal').classList.add('hidden');
                                                     }
+                                                    
                                                     
                                                     // AssitiveText('Please verify your account');
                                                     // document.querySelector('#caution-modal').classList.add('hidden');
@@ -559,7 +572,8 @@ function fillInPin(){
 }
 
 async function  addBusinessTypeOptions(){
-        let businessType  = JSON.parse(localStorage.getItem('finalCompany')).businessType;
+        let cookie = JSON.parse(localStorage.getItem('finalCompany'))
+        let businessType  = (cookie)?cookie.businessType:undefined;
         
 //    let industrytypes =  (await getIndustriesTypes())[0].industryTypes
     let industrylist = [];
@@ -574,7 +588,8 @@ return industrylist;
 }
 
 async function  addGenderTypeOptions(){
-    let gender =  JSON.parse(localStorage.getItem('finalCompany')).users[0].gender;
+    let cookie = JSON.parse(localStorage.getItem('finalCompany'));
+    let gender =  (cookie)? cookie.users[0].gender:undefined
     let genderlist = [];
     genderlist.push(...(await getGenderTypes())[0].genderTypes.map((ele)=>{
         return elt('option',{className:`${ele}`,selected:(ele==gender)?true:false,value:ele},ele);
@@ -586,7 +601,7 @@ async function  addGenderTypeOptions(){
     return  genderlist;
  }
 
-function stepFormReplacement(){
+function stepFormReplacement(currentstep){
     if (currentstep == 1 ){
         return [
         elt('a',{className:'step-ind step-ind-1 step-ind-active inline-flex items-center justify-center w-1/2 py-3 font-medium leading-none tracking-wider border-b-2 border-indigo-500 text-indigo-500 bg-gray-100 rounded-t sm:px-6 sm:w-auto sm:justify-start title-font'},'Step 1'),
@@ -638,8 +653,15 @@ function replaceNextForm(classs,domele,calledfrom){
     unhidebackbutton();
 }
 
-function replaceBackButtonWithPinFeedback(){
+function calledfrom(){
+    
+}
+
+function replaceBackButtonWithPinFeedback(ind){
     let buttonhouse = document.querySelector('.button-house')
+    if(!ind){
+    buttonhouse.insertBefore(pinVerificationFormFeedbackText(),buttonhouse.firstChild);
+    }else
     buttonhouse.insertBefore(pinVerificationFormFeedbackText(),buttonhouse.firstChild);
 }
 
@@ -647,6 +669,31 @@ function unhidebackbutton(){
     if(currentstep>1 && currentstep <4){
         document.querySelector('#form-back-button').classList.remove('hidden');
     }else document.querySelector('#form-back-button').classList.add('hidden');
+}
+
+async function decideStepPage(obj){
+    if(!obj.isVerified){
+
+        // if (document.readyState === 'loading') {
+        //     document.addEventListener('DOMContentLoaded', load); // Document still loading so DomContentLoaded can still fire :)
+        // } else {
+        //     load();
+        // }
+
+        // document.addEventListener('DOMContentLoaded',(event)=>{
+        //     console.log('here')
+        //     currentstep = 4
+        //     AssitiveText('Kindly check the email indicated below for OTP')
+        //     document.querySelector('.step-house').innerHTML = ''
+        //     document.querySelector('.step-house').append(...stepFormReplacement());
+        // })
+        return authorizedDataForm();
+        
+        
+    }else{
+        return  pinVerificationForm(obj.isVerified);
+    }
+    
 }
 
 
@@ -672,7 +719,7 @@ function unhidebackbutton(){
 
 
 
-
+export {pinVerificationFormFeedbackText,stepFormReplacement,fillInPin,AssitiveText}
 
 
 // }
