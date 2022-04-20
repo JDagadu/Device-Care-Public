@@ -1,10 +1,23 @@
 /* .device-care-logo{
     background: url('../Images/');
 } */
-
-body{
-    min-height: 100vh !important;
+html{
+    height: 100%;
 }
+body{
+    height: 100% !important;
+    font-family: 'Open Sans',sans-serif !important;
+}
+.datepicker-header{
+    background-color: #fff;
+    height: auto !important;
+}
+/* .add-device-stepper{
+    min-height: 82vh;
+} */
+/* .stepper-head-text{
+
+} */
 .main-body{
     background: transparent url('../Images/BG4.PNG');
     background-position: center  ;
@@ -77,3 +90,50 @@ input[type=number] {
 /* .hiddenn{
     display:;
 } */
+
+
+
+.stepper{
+    display: flex;
+    justify-content: space-between;
+
+    
+    position: relative;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    list-style: none;
+    overflow: hidden;
+    transition: height .2s ease-in-out;
+}
+
+.stepper-horizontal{
+    
+    overflow-x: hidden;
+}
+
+.stepper-step{
+    flex: auto;
+    height: 4.5rem;
+}
+
+.stepper-head{
+    padding-left:1.5rem;
+
+    display:flex;
+    align-items: center;
+    text-decoration: none;
+    color: unset;
+    line-height: 1.3;
+    cursor: pointer;
+}
+
+.stepper-content{
+    position: absolute;
+    width: 100%;
+    padding: 1rem;
+}
+
+.card-section{
+    background-color: rgba(249, 250, 251, var(--tw-bg-opacity));
+}

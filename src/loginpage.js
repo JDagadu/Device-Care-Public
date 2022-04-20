@@ -6,11 +6,15 @@ import loginflankimg from './Images/loginflankimg.jpg'
 import feather from 'feather-icons'
 import { clearContent } from './utilities';
 import buildLoadingModal from './loadingmodaldialog';
-import { db, signIn } from './firebasesrc';
-import { getIndustriesTypes } from './datamanager';
+import { db, signIn, signOutUser } from './firebasesrc';
+import { getIndustriesTypes, resendOTP } from './datamanager';
 import buildLandingDashboard from './landingDashboard';
 import { doc, getDoc } from "firebase/firestore";
 import buildOnboardingPage, { AssitiveText, fillInPin, pinVerificationFormFeedbackText, stepFormReplacement } from './onboardingpage';
+import buildCautionDialog from './cautiondialog';
+import buildVerifyUserPage, { fillInPin1 } from './verifyuserpage';
+import { signOut } from 'firebase/auth';
+import buildForgotPasswordPage from './forgotpassword';
 // import { copy } from 'request/lib/helpers';
 
 let changes =0;
@@ -47,30 +51,7 @@ let changes =0;
                                                     // console.log(docSnap.data())
                                                     const corporateDoc = await getDoc(doc(db,"corporate",docSnap.data().corporateId))
                                                     if(corporateDoc.exists()){
-                                                        if(corporateDoc.data().isVerified){
-                                                            document.querySelector('.mbody').append(await buildLandingDashboard(signinreturn));
-                                                        }else{
-                                                            
-                                                            var myHeaders = new Headers();
-                                            
-                                            myHeaders.append("Content-Type", "application/json");
-                                            let finalcomp  = JSON.parse(localStorage.getItem('finalCompany'))
-                                            var raw = {'email':finalcomp.email,'type':'C'};
-                                            console.log(JSON.stringify(raw))
-                                            var requestOptions = {
-                                            method: 'POST',
-                                            headers: myHeaders,
-                                            body: JSON.stringify(raw),
-                                            redirect: 'follow'
-                                            };
-
-                                            fetch("https://us-central1-devicecare-652a9.cloudfunctions.net/resendOTP", requestOptions)
-                                            .then(response => response.text())
-                                            .then(async result =>{
-                                                console.log(result);
-                                                let resultObj= JSON.parse(result)
-                                                if(resultObj.message == 'Success'){
-                                                    let user = docSnap.data()
+                                                        let user = docSnap.data()
                                                             let corp = corporateDoc.data()
                                                             let compProf = {
                                                                 'Email':user.email,
@@ -86,6 +67,7 @@ let changes =0;
                                                                 'Corporate email':corp.email,
                                                                 'GP Address': corp.GPAddress,
                                                                 'Corporate phone':corp.phoneNumber,
+                                                                
                                                                 'Comments':corp.comments}
                                                             localStorage.setItem('companyProfile',JSON.stringify(compProf))
                                                             
@@ -111,39 +93,30 @@ let changes =0;
                                                                     }]
                                                                 }
                                                             ))
+                                                            
 
-
-                                                    document.querySelector('.mbody').append( await buildOnboardingPage({isVerified:false}));
-                                                    let buttonhouse = document.querySelector('.button-house')
-                                                    buttonhouse.insertBefore(pinVerificationFormFeedbackText(),buttonhouse.firstChild);
-                                                    document.querySelector('.step-house').innerHTML = ''
-                                                document.querySelector('.step-house').append(...stepFormReplacement(4));
-                                                AssitiveText('Please verify your account');
-                                                fillInPin();
-                                                    
-                                                    // AssitiveText('Please verify your account');
-                                                    // document.querySelector('#caution-modal').classList.add('hidden');
-                                                    // getCorporateFieldData();
-                                                    // replaceNextForm(Array.from(document.querySelector('form').firstChild.classList)[1],pinVerificationForm(),'submit');
-                                                    // document.querySelector('.step-house').innerHTML = ''
-                                                    // document.querySelector('.step-house').append(...stepFormReplacement());
-                                                    // fillInPin();
-                                                }
-                                            }
-                                                )
-                                            .catch(error => {
-                                                // document.querySelector('#loadingmodal').classList.add('hidden');
-                                                console.log('error', error);
-                                                stopButtonLoading('signinbutton','Sign in');
-
-                                                
-                                            })
-
+                                                        if(corporateDoc.data().isVerified){
+                                                            document.querySelector('.mbody').append(await buildLandingDashboard(signinreturn));
+                                                        }else{
+                                                            
+                                                           let result =  await resendOTP()
+                                                           console.log(result)
+                                                           if(result =='Success'){
+                                                            document.querySelector('.mbody').append(await buildVerifyUserPage());
+                                                            fillInPin1();
+                                                            // signOutUser();
+                                                           }else{
+                                                               buildCautionDialog('Corporate account not verified. Error occurred when sending OTP to corporate email')
+                                                               signOutUser();
+                                                               stopButtonLoading('signinbutton','Sign in')
+                                                           }
                                                            
                                                         }
                                                     }else{
                                                         
+                                                        buildCautionDialog('Company Data does not exist')
                                                         console.log('Company Document does not exist')
+                                                        
                                                         stopButtonLoading('signinbutton','Sign in');
 
                                                     // stopButtonLoading('signinbutton','Sign in');
@@ -152,7 +125,9 @@ let changes =0;
                                                     
                                                     // document.querySelector('.mbody').append(buildLandingDashboard(signinreturn));
                                                 }else{
-                                                    console.log('User Data does not exist');
+                                                    buildCautionDialog('User Data does not exist')
+                                                    // console.log('User Data does not exist');
+                                                    // document.querySelector('.mbody').append(await buildLoginPage())
                                                     stopButtonLoading('signinbutton','Sign in');
 
                                                 }
@@ -161,7 +136,8 @@ let changes =0;
                                             }else{
                                                 let domObj = document.querySelector('.errormessage')
                                                 clearContent(domObj);
-                                                domObj.appendChild(document.createTextNode( signinreturn));
+                                                domObj.appendChild(document.createTextNode( 'Incorrect email address and / or password.'));
+                                                domObj.classList.remove('hidden');
                                                 stopButtonLoading('signinbutton','Sign in');
                                             }
                                     }},
@@ -179,11 +155,14 @@ let changes =0;
                                             }},'click here to register')),
                                         elt('div',{},
                                             elt('label',{className:'block text-sm'},'Email'),
-                                            elt('input',{id:'emailfield',required:true,type:'email',placeholder:'',className:'w-full px-4 py-2 text-sm border rounded-md focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-600'})),
+                                            elt('input',{id:'emailfield',required:true,type:'email',placeholder:'',className:'w-full px-4 py-2 text-sm border rounded-md focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-600',oninput(event){
+                                                document.querySelector('.errormessage').classList.add('hidden');
+                                            }})),
                                         elt('div',{},
                                             elt('label',{className:'block text-sm'},'Password'),
                                             elt('div',{className:'relative inset-y-0 w-full right-0 flex flex-row-reverse items-center'},
                                             elt('input',{oninput(event){
+                                                document.querySelector('.errormessage').classList.add('hidden');
                                                     ++changes;
                                                     if(changes == 1 ) addOnClickListenerPassToggle(event.target);
                                                     if(event.target.value.length >0 ){
@@ -247,7 +226,12 @@ let changes =0;
                                             ,
                                             elt('p',{className:'mt-2 errormessage hidden text-xs text-red-600'},'Incorrect email and / or password.')),
                                         elt('p',{className:'mt-4'},
-                                            elt('a',{className:'text-sm text-blue-600 hover:underline', href:'#'},
+                                            elt('a',{className:'text-sm text-blue-600 hover:underline', href:'#',async onclick(event){
+                                                document.querySelector('#loadingmodal').classList.remove('hidden');
+                                                event.preventDefault();
+                                                document.querySelector('.mbody').appendChild(await buildForgotPasswordPage());
+                                                
+                                            }},
                                                 'Having trouble signing in?')),
                                         
                                         elt('button',{type:'submit',id: 'signinbutton',async onclick(event){

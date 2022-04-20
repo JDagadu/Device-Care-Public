@@ -69,8 +69,8 @@ export default function buildSignUpPage()
                                                 elt('input',{required:true,oninput(event){
                                                 if(event.target.value.length > 0){
                                                     document.querySelector('.labeltoggle').classList.remove('hidden');
-                                                    let passvisibility =  document.querySelector('.toggle-visible-pass');
-                                                        passvisibility.classList.remove('hidden');
+                                                    // let passvisibility =  document.querySelector('.toggle-visible-pass');
+                                                        // passvisibility.classList.remove('hidden');
                                                     if (/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(event.target.value)){
                                                         
                                                         document.querySelector('.pass-load-match').classList.add('hidden');
@@ -86,10 +86,10 @@ export default function buildSignUpPage()
                                                 }else {
                                                     // console.log('here4')
                                                     document.querySelector('.pass-load-match').classList.add('hidden');
-                                                    document.querySelectorAll('.toggle-pass-vis').forEach((ele)=>{
-                                                        ele.classList.add('hidden');
-                                                    })
-                                                    document.querySelector('.labeltoggle').classList.add('hidden');
+                                                    // document.querySelectorAll('.toggle-pass-vis').forEach((ele)=>{
+                                                    //     ele.classList.add('hidden');
+                                                    // })
+                                                    // document.querySelector('.labeltoggle').classList.add('hidden');
                                                 }
                                                 
                                             },id:'passwordet',type:'password',placeholder:'',className:'w-full px-4 py-2 text-sm border rounded-md focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-600"'}),
@@ -115,8 +115,8 @@ export default function buildSignUpPage()
                                                         target.type ='password'
                                                     }
                                                     target.focus();
-                                            },for:'toggle' ,className:'absolute labeltoggle hidden pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
-                                                feather.icons['eye'].toSvg({class:'toggle-visible-pass toggle-pass-vis hidden text-xs px-1'}),
+                                            },for:'toggle' ,className:'absolute labeltoggle pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
+                                                feather.icons['eye'].toSvg({class:'toggle-visible-pass toggle-pass-vis  text-xs px-1'}),
                                                 'image/svg+xml',
                                               ).querySelector('svg'),
                                               new DOMParser().parseFromString(
@@ -144,8 +144,8 @@ export default function buildSignUpPage()
                                                 console.log(document.querySelector('#passwordet').value,event.target.value)
                                                 if(event.target.value.length > 0){
                                                     document.querySelector('.conflabeltoggle').classList.remove('hidden');
-                                                    let passvisibility =  document.querySelector('.conf-toggle-pass-vis');
-                                                        passvisibility.classList.remove('hidden');
+                                                    // let passvisibility =  document.querySelector('.conf-toggle-pass-vis');
+                                                        // passvisibility.classList.remove('hidden');
                                                     if (document.querySelector('#passwordet').value ==(event.target.value)){
                                                         
                                                         document.querySelector('.confirm-load-match').classList.add('hidden');
@@ -160,14 +160,14 @@ export default function buildSignUpPage()
                                                     }
                                                 }else{
                                                     document.querySelector('.confirm-load-match').classList.add('hidden');
-                                                    document.querySelectorAll('.conf-toggle-pass-vis').forEach((ele)=>{
-                                                        ele.classList.add('hidden');
-                                                    })
-                                                    document.querySelector('.message-cp').classList.add('hidden');
-                                                    document.querySelector('.conflabeltoggle').classList.add('hidden');
+                                                    // document.querySelectorAll('.conf-toggle-pass-vis').forEach((ele)=>{
+                                                    //     ele.classList.add('hidden');
+                                                    // })
+                                                    // document.querySelector('.message-cp').classList.add('hidden');
+                                                    // document.querySelector('.conflabeltoggle').classList.add('hidden');
                                                 }
                                             },id:'confirmpasswordet',type:'password',placeholder:'',className:'w-full px-4 py-2 text-sm border rounded-md focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-600"'}),
-                                            elt('input',{id: 'conftoggle',className:'absolute right-0 pass-visibility hidden z-50 password-toggle-checkbox',type:'checkbox'}),
+                                            elt('input',{id: 'conftoggle',className:'absolute right-0 hidden pass-visibility z-50 password-toggle-checkbox',type:'checkbox'}),
                                             elt('label',{onclick(event){
                                                 let target = document.querySelector('#confirmpasswordet');
                                                 document.querySelectorAll('.conf-toggle-pass-vis').forEach((ele)=>{
@@ -189,8 +189,8 @@ export default function buildSignUpPage()
                                                         target.type ='password'
                                                     }
                                                     target.focus();
-                                            },for:'toggle' ,className:'absolute conflabeltoggle hidden pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
-                                                feather.icons['eye'].toSvg({class:'toggle-visible-pass conf-toggle-pass-vis hidden text-xs px-1'}),
+                                            },for:'toggle' ,className:'absolute conflabeltoggle  pass-visibility hover:text-gray-400 z-50 rounded px-2 py-1 text-sm text-gray-600 cursor-pointer password-toggle-checkbox-label'},new DOMParser().parseFromString(
+                                                feather.icons['eye'].toSvg({class:'toggle-visible-pass conf-toggle-pass-vis text-xs px-1'}),
                                                 'image/svg+xml',
                                               ).querySelector('svg'),
                                               new DOMParser().parseFromString(

@@ -23,11 +23,12 @@ function buildCaution(cmessage){
             elt('div',{className:'mt-2 px-7 py-3'},
                 elt('p',{className:'text-sm text-gray-500'},cmessage)),
             elt('div',{className:'items-center px-4 py-3'},
-                elt('button',{id:'ok-btn',className:'px-4 my-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300'},'OK'
-            ),elt('button',{onclick(event){
+            //     elt('button',{id:'ok-btn',className:'px-4 my-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300'},'OK'
+            // ),
+            elt('button',{onclick(event){
                 console.log('cancel')
                 document.querySelector('#caution-modal').classList.add('hidden');
-            },id:'cancel-btn',className:'px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-green-300'},'CANCEL'
+            },id:'cancel-btn',className:'px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-green-300'},'OK'
         )
             ))))
 }

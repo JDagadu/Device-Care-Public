@@ -5,14 +5,18 @@ import {clearContent} from './utilities'
 import feather from 'feather-icons'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import buildCautionDialog from "./cautiondialog";
-import { functions, signIn } from "./firebasesrc";
+import { db, functions, getFirebaseStorage, signIn } from "./firebasesrc";
 import buildLoadingModal from "./loadingmodaldialog";
 import buildSuccessDialog from "./successdialog";
 import buildLandingDashboard from "./landingDashboard";
+import buildConfirmDialog from "./confirmactiondialog";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { doc, setDoc } from "firebase/firestore";
+import buildLoginPage from "./loginpage";
 
 
 let currentstep = 1;
-
+let logofile;
 
 export default async function buildOnboardingPage(veriedobj){
     clearContent(document.querySelector('.mbody'))
@@ -97,7 +101,7 @@ export default async function buildOnboardingPage(veriedobj){
                                         // if(document.querySelector('#businesstype').options[document.querySelector('#businesstype').selectedIndex].value=='none'){
                                         //     document.querySelector('.caution-select').classList.remove('hidden');
                                         // }else{
-                                            buildCautionDialog('Are you sure the details provided accurately reflect intentions?');
+                                            buildConfirmDialog('Are you sure the details provided accurately reflect intentions?');
                                             document.querySelector('#ok-btn').addEventListener('click',(event)=>{
                                                 document.querySelector('#caution-modal').classList.add('hidden');
                                                 buildLoadingModal();
@@ -124,6 +128,51 @@ export default async function buildOnboardingPage(veriedobj){
                                                 let resultObj= JSON.parse(result)
                                                 console.log(resultObj);
                                                 if(resultObj.message == 'Success.'){
+                                                    let fC1 = JSON.parse(localStorage.getItem('companyProfile'));
+                                                    const corporatestorage = ref(getFirebaseStorage(),'Corporate Logos/'+fC1['Corporate logo']);
+                                                    // const storageRef = ref(corporatestorage,'Corporate Logos' );
+                                                    console.log(corporatestorage.fullPath)
+                                                    console.log(ref(getFirebaseStorage(),'Corporate Logos/'+fC1['Corporate logo']).fullPath)
+                                                    
+                                                    const metadata = {
+                                                        contentType: fC1['Corporate logotype'],
+                                                      };
+                                                      const uploadTask = uploadBytesResumable(corporatestorage, logofile,metadata);
+                                                      uploadTask.on('state_changed', 
+                                                      (snapshot) => {
+                                                          // Observe state change events such as progress, pause, and resume
+                                                          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                                                          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                                          console.log('Upload is ' + progress + '% done');
+                                                          switch (snapshot.state) {
+                                                          case 'paused':
+                                                              console.log('Upload is paused');
+                                                              break;
+                                                          case 'running':
+                                                              console.log('Upload is running');
+                                                              break;
+                                                          }
+                                                      }, 
+                                                      (error) => {
+                                                          // Handle unsuccessful uploads
+                                                          document.querySelector('#loadingmodal').classList.add('hidden');
+                                                          buildCautionDialog('Account profile picture upload failed')
+                                                          console.log('picture upload failed')
+                                                      }, 
+                                                      async () => {
+                                                          // Handle successful uploads on complete
+                                                          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                                                          getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+                                                          console.log('File available at', downloadURL);
+
+
+                                                          let corporateRef = doc(db,'corporate',fC1['Corporate email']);
+                                                          let setProfilereturn = await setDoc(corporateRef,{profilePhoto:downloadURL},{merge:true})
+
+                                                        });
+                                                    }
+                                                    );
+
                                                     document.querySelector('#loadingmodal').classList.add('hidden');
                                                     buildSuccessDialog('Your corporate account has been created successfully!');
                                                     document.querySelector('#success-btn-ok').addEventListener('click',(event)=>{
@@ -142,7 +191,8 @@ export default async function buildOnboardingPage(veriedobj){
                                                 )
                                             .catch(error => {
                                                 document.querySelector('#loadingmodal').classList.add('hidden');
-                                                console.log('error', error);
+                                                buildCautionDialog('Error: '+error)
+                                                // console.log('error', error);
                                                 
                                             })
                                             
@@ -232,9 +282,13 @@ async function corporateDataForm(){
                                         elt('div',{className:'flex flex-col mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Phone Number'),
                                             elt('input',{required:true,value:(fillboxes)?fillboxes.phoneNumber:'',id:'corporatephone',type:'number',name:'corporatephone',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                        elt('div',{className:'flex flex-col mb-2'},
+                                            elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'profilepic'},'Company Logo'),
+                                            elt('input',{required:true,id:'profilepic',type:'file',accept:'image/*',name:'profilepic',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
                                         elt('div',{className:'flex flex-col  col-span-2 mb-2'},
                                             elt('label',{className:'inline-flex mb-2 text-sm text-gray-800',for:'company'},'Comments'),
-                                            elt('textarea',{id:'comments',value:(fillboxes)?fillboxes.comments:'',name:'comments',rows:'4',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'}))
+                                            elt('textarea',{id:'comments',value:(fillboxes)?fillboxes.comments:'',name:'comments',rows:'4',className:'w-full px-3 py-2 text-gray-800 border rounded outline-none bg-gray-50 focus:ring ring-indigo-300'})),
+                                            
                                         )
 }
 function confirmationDetailsForm(){
@@ -376,7 +430,13 @@ function getCorporateFieldData(){
     let corporateemail = document.querySelector('#corporateemail').value
     let gpaddress = document.querySelector('#gpaddress').value
     let corporatephone = document.querySelector('#corporatephone').value
+    let corporatelogo = document.querySelector('#profilepic').files[0].name;
+    let corporatelogotype =document.querySelector('#profilepic').files[0].type;
+    logofile = document.querySelector('#profilepic').files[0];
     let comments= document.querySelector('#comments').value 
+
+
+    console.log(corporatelogo);
     // let gender = document.querySelector('#gender').options[document.querySelector('#gender').selectedIndex].value
 
     let userProfile = JSON.parse(localStorage.getItem('companyProfile'));
@@ -388,6 +448,8 @@ function getCorporateFieldData(){
         'Corporate email':corporateemail,
         'GP Address': gpaddress,
         'Corporate phone':corporatephone,
+        'Corporate logo':corporatelogo,
+        'Corporate logotype':corporatelogotype,
         'Comments':comments
     })
 
@@ -426,7 +488,7 @@ function getCorporateFieldData(){
 
 function pinVerificationForm(ind){
     replaceBackButtonWithPinFeedback(ind);
-    let companyProf = JSON.parse(localStorage.getItem('companyProfile'));
+    let companyProf = JSON.parse(localStorage.getItem('finalCompany'));
     
     return elt('div',{className:'field-container pin-verification-form'},
     elt('div',{className:'flex flex-col items-center justify-center mb-4'},
@@ -476,7 +538,7 @@ function addEventListener(){
                                             var myHeaders = new Headers();
                                             
                                             myHeaders.append("Content-Type", "application/json");
-                                            let finalcomp  = JSON.parse(localStorage.getItem('finalCompany'))
+                                            let finalcomp  = JSON.parse(localStorage.getItem('finalCompany'));
                                             var raw = {'otp':OTP,'email':finalcomp.email,'type':'C'};
                                             console.log(JSON.stringify(raw))
                                             var requestOptions = {
@@ -490,22 +552,32 @@ function addEventListener(){
                                             .then(response => response.text())
                                             .then(async result =>{
                                                 console.log(result);
-                                                let resultObj= JSON.parse(result)
+                                                let resultObj= JSON.parse(result);
 
                                                 if(resultObj.message == 'Success'){
                                                     let fC =  JSON.parse(localStorage.getItem('companyProfile'));
-                                                    document.querySelector('#loadingmodal').classList.add('hidden');
-                                                    console.log(fC['Email'],fC['password']);
-                                                    let res = await signIn(fC['Email'],fC['password'])
-                                                    console.log(res.uid);
-                                                    if(res.uid){
-                                                    localStorage.clear('companyProfile');
-                                                    localStorage.clear('finalCompany');
-                                                     document.querySelector('.mbody').append(await buildLandingDashboard());
-                                                    }else{
-                                                        console.log(res);
-                                                        document.querySelector('#loadingmodal').classList.add('hidden');
-                                                    }
+                                                                // let fC =  JSON.parse(localStorage.getItem('companyProfile'));
+                                                                document.querySelector('#loadingmodal').classList.add('hidden');
+                                                                console.log(fC['Email'],fC['password']);
+                                                                
+                                                                
+                                                                
+                                                                let res = await signIn(fC['Email'],fC['password'])
+                                                                console.log(res.uid);
+                                                                if(res.uid){
+                                                                localStorage.clear('companyProfile');
+                                                                localStorage.clear('finalCompany');
+                                                                document.querySelector('.mbody').append(await buildLandingDashboard());
+                                                                }else{
+                                                                    console.log(res);
+                                                                    document.querySelector('#loadingmodal').classList.add('hidden');
+                                                                    buildCautionDialog('Device Care was not able to sign user in. Kindly contact adminstrator.')
+                                                                    
+                                                                    
+                                                                }
+                                                             
+
+                                                    
                                                     
                                                     
                                                     // AssitiveText('Please verify your account');
@@ -515,12 +587,15 @@ function addEventListener(){
                                                     // document.querySelector('.step-house').innerHTML = ''
                                                     // document.querySelector('.step-house').append(...stepFormReplacement());
                                                     // fillInPin();
+                                                }else{
+                                                    buildCautionDialog('An error occurred when creating user account');
                                                 }
                                             }
                                                 )
                                             .catch(error => {
                                                 document.querySelector('#loadingmodal').classList.add('hidden');
-                                                console.log('error', error);
+                                                buildCautionDialog('Error: '+error)
+                                                // console.log('error', error);
                                                 
                                             })
              }

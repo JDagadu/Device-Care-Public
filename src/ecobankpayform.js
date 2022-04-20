@@ -5,7 +5,7 @@ import feather from 'feather-icons'
 
 export default function buildPaymentGatewayForm(){
     //elt('div',{id:'loadingmodal',className:'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full'},
-    clearContent(document.querySelector('.main-content'));
+    // clearContent(document.querySelector('.main-content'));
     return    elt('form',{action:'https://checkout.paywithonline.com/', className:'w-1/2 ',async onsubmit(event){
 
     //     let emailvalue = document.querySelector('#emailfield').value.toString();

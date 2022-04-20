@@ -1,5 +1,6 @@
 import {initializeApp} from 'firebase/app'
 import { getFunctions } from 'firebase/functions';
+import {getStorage,ref} from 'firebase/storage'
 
 import { getAuth, signInWithEmailAndPassword,onAuthStateChanged, getRedirectResult, signOut} from "firebase/auth";
 
@@ -21,6 +22,14 @@ const firebaseConfig = {
   const functions = getFunctions(app);
   const db = getFirestore(app);
   const auth = getAuth();
+
+function getFirebaseStorage(){
+
+  const corporatelogStorage = getStorage(app);
+  return ref(corporatelogStorage);
+  
+}
+  
 
 function signIn(email,password){
        
@@ -53,5 +62,5 @@ async function signOutUser(){
   return await signOut(auth);
 }
 
-export {signIn,getDoc,getFirestore,doc,onSnapshot,signOutUser,functions,db}
+export {signIn,getDoc,getFirestore,doc,onSnapshot,signOutUser,getFirebaseStorage,functions,db}
 
